@@ -2,18 +2,32 @@
 .dev-build:
 	docker-compose -f docker-compose-dev.yml build
 
+# Remove node_modules
+.dev-clear:
+	docker-compose -f docker-compose-dev.yml down -v
+
 # Command used to create the project initially. Creates a new project and moves it into the current directory
-# You should update the project name and the starter
-.init: .dev-build
-	docker-compose -f docker-compose-dev.yml run dev /bin/sh -c "gatsby new leonyork-com https://github.com/tinacms/gatsby-starter-tinacms && cp -rdf leonyork-com . && rm -rdf leonyork-com"
+.init: .dev-build .dev-clear
+	docker-compose -f docker-compose-dev.yml run --rm dev /bin/sh -c \
+		"echo project name: && \
+		read PROJECT_NAME && \
+		echo starter - leave blank for default: && \
+		read STARTER && \
+		mkdir -p ~/.config/gatsby && \
+		echo '{\"cli\": {\"packageManager\": \"yarn\"}}' > ~/.config/gatsby/config.json && \
+		gatsby new \$$PROJECT_NAME \$$STARTER && \
+		mv -f \$$PROJECT_NAME/node_modules/* \$$PROJECT_NAME/node_modules/.[!.]* ./node_modules/ && \
+		cat README.md >> \$$PROJECT_NAME/README.md && \
+		cp -rdf \$$PROJECT_NAME/* . && \
+		rm -rf \$$PROJECT_NAME"
 
 # Run the project in development mode - i.e. hot reloading as you change the code.
 .dev: .dev-build
 	docker-compose -f docker-compose-dev.yml up
 
-# sh into the dev container - useful for debugging
+# sh into the dev container - useful for debugging or installing new dependencies (you should do this inside the container rather than on the host)
 .dev-sh: .dev-build
-	docker-compose -f docker-compose-dev.yml run dev /bin/sh
+	docker-compose -f docker-compose-dev.yml run --rm dev /bin/sh
 
 # Run the full build
 build:
