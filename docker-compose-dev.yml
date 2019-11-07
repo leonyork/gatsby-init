@@ -10,8 +10,14 @@ services:
     volumes:
       - .:/app
       - node_modules:/app/node_modules
+      - ~/.gitconfig:/root/.gitconfig
+    secrets:
+      - source: ssh
+        target: /root/.ssh_host
     environment:
       - NODE_ENV=development
+    # Copy over the .ssh folder and make sure the correct user owns it
+    entrypoint: 'sh -c ''cp -rfd /root/.ssh_host /root/.ssh && chmod -R 400 /root/.ssh && docker-entrypoint.sh $${0} "$$@"''' 
     command:  ["gatsby", "develop", "-H", "0.0.0.0"]
   # Had to add a proxy as gatsby seems to refuse connections if they're to a different IP than it's listening on
   # Proxies both http and websockets
@@ -32,3 +38,6 @@ services:
       }" > /etc/nginx/conf.d/default.conf && nginx -g "daemon off;"'
 volumes:
   node_modules:
+secrets:
+  ssh:
+    file: ~/.ssh
