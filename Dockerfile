@@ -5,7 +5,7 @@ FROM node:12.13.0-alpine AS gatsby
 EXPOSE 8000 9929 9230
 
 RUN \
-  apk add --no-cache python make g++ && \
+  apk add --no-cache python make g++ git && \
   apk add vips-dev fftw-dev --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/community --repository http://dl-3.alpinelinux.org/alpine/edge/main && \
   rm -fR /var/cache/apk/* && \
   npm install -g gatsby-cli yarn
